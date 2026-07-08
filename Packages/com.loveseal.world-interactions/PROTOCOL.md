@@ -16,10 +16,12 @@ A feature broadcast is a **VRCContactSender** with:
 | Collision Tags | One tag per feature (see naming below) |
 | Enabled | Off by default, toggled by the wearer (e.g. an expressions-menu toggle) |
 
-Pinning everything to the origin makes this a pure *flag broadcast* system: proximity never
-matters, only whether the toggle is on. Local-only senders mean the world always knows **which
-player** is broadcasting — it's the local player of whichever client detects the contact.
-Worlds that want everyone to react sync the state themselves via Udon networking.
+Pinning everything to the origin makes this a pure *flag broadcast* system: the contact
+itself carries no position, only whether the toggle is on. Local-only senders mean the world
+always knows **which player** is broadcasting — it's the local player of whichever client
+detects the contact. Worlds that want others to react sync the state via Udon networking, and
+can derive the broadcaster's position from the syncing client (e.g. for effects ranged around
+the broadcaster, as World Interactions does).
 
 ## World side: receiving
 

@@ -51,12 +51,14 @@ MonoBehaviour:
   SlowTags:
   - WI/Slow
   SlowSpeedMultiplier: 0.5
-  SlowInstanceWide: 1
+  SlowSynced: 1
+  SlowRange: 8
   EnableRumble: 1
   RumbleTags:
   - WI/Rumble
   RumblePulseInterval: 0.25
   RumbleAmplitude: 0.7
   RumbleFrequency: 0.5
-  RumbleInstanceWide: 1
+  RumbleSynced: 1
+  RumbleRange: 8
   CustomInteractions: []

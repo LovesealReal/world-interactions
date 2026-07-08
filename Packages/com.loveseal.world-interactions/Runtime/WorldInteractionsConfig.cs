@@ -1,6 +1,4 @@
 // World Interactions — by Loveseal | v1.0.0
-// World-side receiver system for avatar contact broadcasts. See PROTOCOL.md for the
-// contact convention avatars follow to be compatible.
 
 using System;
 using System.Collections.Generic;
@@ -10,35 +8,34 @@ using VRC.SDKBase;
 
 namespace Loveseal.WorldInteractions
 {
-    /// <summary>
-    /// One custom interaction: a collision tag the world listens for, and the creator's
-    /// UdonSharp behaviour + events to run when a matching avatar contact starts/ends.
-    /// </summary>
+    /// <summary>A contact tag the world listens for, and the creator code to run on start/end.</summary>
     [Serializable]
     public class WorldInteraction
     {
         [Tooltip("Display name; also used for the generated GameObject.")]
         public string Name = "New Interaction";
 
-        [Tooltip("Collision tag the avatar's contact sender broadcasts (e.g. 'MyWorld/Confetti').")]
+        [Tooltip("Collision tag the avatar broadcasts (e.g. 'MyWorld/Confetti').")]
         public string CollisionTag = "";
 
-        [Tooltip("Off: events fire only on the client that detects the contact (the player whose " +
-                 "avatar sent it). On: the state is synced so the events fire for everyone in the " +
-                 "instance, including late joiners.")]
-        public bool InstanceWide = false;
+        [Tooltip("Off: events fire only on the broadcaster's own client. On: state is synced and " +
+                 "events fire for every player within Range of the broadcaster (late joiners included).")]
+        public bool Synced = false;
 
-        [Tooltip("Skip firing the events on clients whose local player is broadcasting one of the " +
-                 "Presence Tags (e.g. staff badges).")]
+        [Tooltip("Effect radius in meters around the broadcasting player (synced only). 0 = entire instance.")]
+        [Range(0f, 100f)]
+        public float EffectRange = 8f;
+
+        [Tooltip("Skip the events on clients whose local player broadcasts a Presence Tag.")]
         public bool ExemptPresence = false;
 
         [Tooltip("Your UdonSharp behaviour that reacts to this interaction.")]
         public UdonSharpBehaviour Target;
 
-        [Tooltip("Custom event sent to Target when the contact starts.")]
+        [Tooltip("Custom event sent to Target when the effect starts.")]
         public string StartEvent = "OnInteractionStart";
 
-        [Tooltip("Custom event sent to Target when the contact ends. Leave empty for none.")]
+        [Tooltip("Custom event sent to Target when the effect ends. Leave empty for none.")]
         public string EndEvent = "OnInteractionEnd";
     }
 
@@ -49,15 +46,13 @@ namespace Loveseal.WorldInteractions
         public const string Version = "1.0.0";
 
         [Header("Contacts")]
-        [Tooltip("Radius of the generated contact receivers. Compatible avatar senders are 0.5m " +
-                 "spheres pinned to the world origin, so any positive value overlaps them.")]
+        [Tooltip("Radius of the generated contact receivers. Compatible senders are 0.5m spheres " +
+                 "at the world origin, so any positive value overlaps them.")]
         [Range(0.1f, 5f)]
         public float ReceiverRadius = 0.5f;
 
         [Header("Presence")]
-        [Tooltip("Tags that mark the local player as a presence-beacon wearer (e.g. a staff badge). " +
-                 "Players broadcasting one of these can be exempted from effects, and creator code " +
-                 "can check PresenceDetector.IsLocalPlayerBroadcasting.")]
+        [Tooltip("Tags that mark the local player as a presence-beacon wearer (e.g. a staff badge).")]
         public List<string> PresenceTags = new List<string>
         {
             "WI/Presence",
@@ -67,8 +62,8 @@ namespace Loveseal.WorldInteractions
         [Tooltip("React to Slow broadcasts by reducing player movement speed.")]
         public bool EnableSlow = true;
 
-        [Tooltip("Collision tags the Slow feature listens for. Add vendor tags (e.g. " +
-                 "'MyClub/Slow') alongside the standard one to support other ecosystems.")]
+        [Tooltip("Collision tags Slow listens for. Add vendor tags (e.g. 'MyClub/Slow') to " +
+                 "support other ecosystems.")]
         public List<string> SlowTags = new List<string>
         {
             "WI/Slow",
@@ -78,16 +73,21 @@ namespace Loveseal.WorldInteractions
         [Range(0f, 1f)]
         public float SlowSpeedMultiplier = 0.5f;
 
-        [Tooltip("Apply Slow to everyone in the instance (presence wearers exempt). Off = only " +
-                 "the player whose avatar sent the contact.")]
-        public bool SlowInstanceWide = true;
+        [Tooltip("Sync Slow so players near the broadcaster are affected (presence wearers exempt). " +
+                 "Off = only the broadcaster's own client.")]
+        public bool SlowSynced = true;
+
+        [Tooltip("Slow radius in meters around the broadcaster. 0 = entire instance. " +
+                 "Previewed as a gizmo while this object is selected.")]
+        [Range(0f, 100f)]
+        public float SlowRange = 8f;
 
         [Header("Rumble")]
         [Tooltip("React to Rumble broadcasts by pulsing controller haptics.")]
         public bool EnableRumble = true;
 
-        [Tooltip("Collision tags the Rumble feature listens for. Add vendor tags (e.g. " +
-                 "'MyClub/Rumble') alongside the standard one to support other ecosystems.")]
+        [Tooltip("Collision tags Rumble listens for. Add vendor tags (e.g. 'MyClub/Rumble') to " +
+                 "support other ecosystems.")]
         public List<string> RumbleTags = new List<string>
         {
             "WI/Rumble",
@@ -105,9 +105,14 @@ namespace Loveseal.WorldInteractions
         [Range(0f, 1f)]
         public float RumbleFrequency = 0.5f;
 
-        [Tooltip("Apply Rumble to everyone in the instance (presence wearers exempt). Off = only " +
-                 "the player whose avatar sent the contact.")]
-        public bool RumbleInstanceWide = true;
+        [Tooltip("Sync Rumble so players near the broadcaster are affected (presence wearers exempt). " +
+                 "Off = only the broadcaster's own client.")]
+        public bool RumbleSynced = true;
+
+        [Tooltip("Rumble radius in meters around the broadcaster. 0 = entire instance. " +
+                 "Previewed as a gizmo while this object is selected.")]
+        [Range(0f, 100f)]
+        public float RumbleRange = 8f;
 
         [Header("Custom Interactions")]
         [Tooltip("Your own contact tags and the code to run when they trigger.")]

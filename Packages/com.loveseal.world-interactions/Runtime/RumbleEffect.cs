@@ -1,5 +1,4 @@
-// World Interactions — built-in Rumble effect
-// by Loveseal | v1.0.0
+// World Interactions — built-in Rumble effect | by Loveseal
 
 using UdonSharp;
 using UnityEngine;
@@ -8,9 +7,8 @@ using VRC.SDKBase;
 namespace Loveseal.WorldInteractions
 {
     /// <summary>
-    /// Built-in handler for the standard Rumble broadcast. While active, both of
-    /// the local player's controllers pulse on an interval (no-op for desktop players).
-    /// Driven by a ContactInteraction relay via OnRumbleStart/OnRumbleEnd.
+    /// Pulses both controllers' haptics on an interval while active (no-op on desktop).
+    /// Driven by a ContactInteraction relay.
     /// </summary>
     [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
     public class RumbleEffect : UdonSharpBehaviour
@@ -33,7 +31,6 @@ namespace Loveseal.WorldInteractions
         public void OnRumbleStart()
         {
             _active = true;
-            // A previously scheduled pulse keeps the loop alive; only start a new one if none is pending.
             if (!_pulseScheduled) _RumblePulse();
         }
 

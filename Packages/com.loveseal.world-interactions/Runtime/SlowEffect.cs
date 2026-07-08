@@ -1,5 +1,4 @@
-// World Interactions — built-in Slow effect
-// by Loveseal | v1.0.0
+// World Interactions — built-in Slow effect | by Loveseal
 
 using UdonSharp;
 using UnityEngine;
@@ -8,10 +7,8 @@ using VRC.SDKBase;
 namespace Loveseal.WorldInteractions
 {
     /// <summary>
-    /// Built-in handler for the standard Slow broadcast. While active, the local
-    /// player's walk/run/strafe speeds are multiplied by <see cref="SpeedMultiplier"/>; the
-    /// original speeds are captured on activation and restored afterwards.
-    /// Driven by a ContactInteraction relay via OnSlowStart/OnSlowEnd.
+    /// Scales the local player's walk/run/strafe speed while active; original speeds are
+    /// captured on start and restored on end. Driven by a ContactInteraction relay.
     /// </summary>
     [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
     public class SlowEffect : UdonSharpBehaviour

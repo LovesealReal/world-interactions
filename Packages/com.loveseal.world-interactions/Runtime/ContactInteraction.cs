@@ -1,5 +1,4 @@
-// World Interactions — contact-to-Udon relay
-// by Loveseal | v1.0.0
+// World Interactions — contact-to-Udon relay | by Loveseal
 
 using UdonSharp;
 using UnityEngine;
@@ -9,32 +8,32 @@ using VRC.SDKBase;
 namespace Loveseal.WorldInteractions
 {
     /// <summary>
-    /// Bridges one avatar contact tag to creator code. The VRCContactReceiver on this object
-    /// (added by the build-time generator) fires OnContactEnter/OnContactExit; this relay
-    /// tracks the active state and sends the configured custom events to the target behaviour.
-    ///
-    /// Because compatible senders are local-only, a contact is only ever detected on the
-    /// client of the player whose avatar sent it. With InstanceWide on, that client takes
-    /// ownership and syncs the state so every client (late joiners included) runs the events;
-    /// off, the events run only on the detecting client.
+    /// Bridges one avatar contact tag to creator code. Senders are local-only, so a contact is
+    /// only detected on the broadcaster's client. When Synced, that client owns this object and
+    /// syncs the state; every client then applies the effect while its player is within
+    /// EffectRange of the broadcaster (the object's owner).
     /// </summary>
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
     public class ContactInteraction : UdonSharpBehaviour
     {
+        private const float RangeCheckInterval = 0.25f;
+
         [HideInInspector] public string InteractionName;
         [HideInInspector] public UdonSharpBehaviour Target;
         [HideInInspector] public string StartEvent;
         [HideInInspector] public string EndEvent;
-        [HideInInspector] public bool InstanceWide;
+        [HideInInspector] public bool Synced;
+        [HideInInspector] public float EffectRange; // meters around the broadcaster; 0 = entire instance
         [HideInInspector] public bool ExemptPresence;
         [HideInInspector] public PresenceDetector Detector;
 
-        /// <summary>True while this interaction is active on this client (before presence exemption).</summary>
+        /// <summary>True while the broadcast is active on this client (before range/exemption).</summary>
         [HideInInspector] public bool IsActive;
 
         [UdonSynced] private bool _syncedActive;
         private int _localContacts;
-        private bool _handlerNotified;
+        private bool _effectOn;
+        private bool _rangeLoopScheduled;
 
         public override void OnContactEnter(ContactEnterInfo contactInfo)
         {
@@ -50,21 +49,20 @@ namespace Loveseal.WorldInteractions
 
         private void OnLocalStateChanged(bool active)
         {
-            if (InstanceWide)
+            if (Synced)
             {
                 TakeOwnership();
                 _syncedActive = active;
                 RequestSerialization();
             }
-            Dispatch(active);
+            SetBroadcastActive(active);
         }
 
         public override void OnDeserialization()
         {
-            if (!InstanceWide) return;
+            if (!Synced) return;
 
-            // Another activator switched the synced state off while our own contact is still
-            // live (e.g. two broadcasters toggled the same feature) — re-assert it.
+            // Re-assert if another broadcaster switched it off while our contact is still live.
             if (!_syncedActive && _localContacts > 0)
             {
                 TakeOwnership();
@@ -73,19 +71,18 @@ namespace Loveseal.WorldInteractions
                 return;
             }
 
-            Dispatch(_syncedActive);
+            SetBroadcastActive(_syncedActive);
         }
 
-        // If ownership falls to us (e.g. the activating player left mid-effect) and we can't
-        // see the contact ourselves, clear the stale synced state for everyone.
+        // Clear stale state if the broadcaster left and ownership fell to us.
         public override void OnOwnershipTransferred(VRCPlayerApi player)
         {
-            if (!InstanceWide || player == null || !player.isLocal) return;
+            if (!Synced || player == null || !player.isLocal) return;
             if (_syncedActive && _localContacts == 0)
             {
                 _syncedActive = false;
                 RequestSerialization();
-                Dispatch(false);
+                SetBroadcastActive(false);
             }
         }
 
@@ -95,22 +92,57 @@ namespace Loveseal.WorldInteractions
                 Networking.SetOwner(Networking.LocalPlayer, gameObject);
         }
 
-        private void Dispatch(bool active)
+        private void SetBroadcastActive(bool active)
         {
             if (active == IsActive) return;
             IsActive = active;
 
-            if (active)
+            if (!active)
+            {
+                SetEffect(false);
+            }
+            else if (Synced && EffectRange > 0f)
+            {
+                if (!_rangeLoopScheduled) _RangeCheck();
+            }
+            else
+            {
+                SetEffect(true);
+            }
+        }
+
+        public void _RangeCheck()
+        {
+            _rangeLoopScheduled = false;
+            if (!IsActive || !Synced || EffectRange <= 0f) return;
+
+            SetEffect(IsLocalPlayerInRange());
+            _rangeLoopScheduled = true;
+            SendCustomEventDelayedSeconds(nameof(_RangeCheck), RangeCheckInterval);
+        }
+
+        private bool IsLocalPlayerInRange()
+        {
+            VRCPlayerApi owner = Networking.GetOwner(gameObject);
+            VRCPlayerApi local = Networking.LocalPlayer;
+            if (!Utilities.IsValid(owner) || !Utilities.IsValid(local)) return false;
+            if (owner.isLocal) return true;
+            return Vector3.Distance(owner.GetPosition(), local.GetPosition()) <= EffectRange;
+        }
+
+        private void SetEffect(bool on)
+        {
+            if (on == _effectOn) return;
+
+            if (on)
             {
                 if (ExemptPresence && Detector != null && Detector.IsLocalPlayerBroadcasting) return;
-                _handlerNotified = true;
+                _effectOn = true;
                 if (Target != null && !string.IsNullOrEmpty(StartEvent)) Target.SendCustomEvent(StartEvent);
             }
             else
             {
-                // Only send the end event if the start event actually fired on this client.
-                if (!_handlerNotified) return;
-                _handlerNotified = false;
+                _effectOn = false;
                 if (Target != null && !string.IsNullOrEmpty(EndEvent)) Target.SendCustomEvent(EndEvent);
             }
         }

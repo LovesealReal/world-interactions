@@ -1,6 +1,4 @@
-// World Interactions — menu items for spawning the prefab.
-// Because this ships as a VPM package (not under Assets/), users can't drag the
-// prefab from the Project window, so these menu entries do it for them.
+// World Interactions — prefab spawn menu items | by Loveseal
 
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -20,8 +18,6 @@ namespace Loveseal.WorldInteractions.Editor
             SpawnPrefab(null, PrefabGuid, "World Interactions");
         }
 
-        // Adding the "GameObject/" prefix makes this show up in the hierarchy
-        // right-click context menu (and the top GameObject menu).
         [MenuItem("GameObject/World Interactions", false, 10)]
         private static void InitializeFromHierarchy(MenuCommand command)
         {
@@ -40,33 +36,22 @@ namespace Loveseal.WorldInteractions.Editor
             {
                 EditorUtility.DisplayDialog(
                     displayName,
-                    $"Could not find the {displayName} prefab. Make sure the " +
-                    "package is installed correctly.",
+                    $"Could not find the {displayName} prefab. Make sure the package is installed correctly.",
                     "OK");
                 return;
             }
 
             var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
-            if (instance == null)
-            {
-                return;
-            }
+            if (instance == null) return;
 
             if (parent != null)
-            {
                 Undo.SetTransformParent(instance.transform, parent.transform, $"Spawn {displayName}");
-            }
             instance.transform.position = Vector3.zero;
             instance.transform.rotation = Quaternion.identity;
 
-            // Keep it in the scene the user is looking at.
-            var targetScene = parent != null
-                ? parent.scene
-                : SceneManager.GetActiveScene();
+            var targetScene = parent != null ? parent.scene : SceneManager.GetActiveScene();
             if (targetScene.IsValid() && instance.scene != targetScene)
-            {
                 SceneManager.MoveGameObjectToScene(instance, targetScene);
-            }
 
             Undo.RegisterCreatedObjectUndo(instance, $"Spawn {displayName}");
             Selection.activeGameObject = instance;

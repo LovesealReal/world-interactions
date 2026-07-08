@@ -1,9 +1,7 @@
-// World Interactions — build-time generator
-// by Loveseal | v1.0.0
+// World Interactions — build-time generator | by Loveseal
 //
-// Nothing but a config component lives in the scene; every contact receiver, relay and
-// effect handler is generated when the world builds (and when entering Play Mode), then
-// the config is stripped from the built scene.
+// The scene only holds a config component; receivers, relays and effect handlers are
+// generated at build time (and on entering Play Mode), then the config is stripped.
 
 using System.Collections.Generic;
 using UdonSharpEditor;
@@ -21,10 +19,8 @@ namespace Loveseal.WorldInteractions.Editor
     {
         public const string GeneratedRootName = "World Interactions (Generated)";
 
-        // Must run before UdonSharp's [PostProcessScene] pass (order 0), which copies proxy
-        // state onto the backing UdonBehaviours and strips proxies from player builds, and
-        // before VRC's UdonBuildPreprocessor (order 0), which populates the serialized
-        // program asset references — both need to see the behaviours generated here.
+        // Before UdonSharp's [PostProcessScene] pass and VRC's UdonBuildPreprocessor (both
+        // order 0) — they must see the behaviours generated here.
         public int callbackOrder => -1024;
 
         public void OnProcessScene(Scene scene, BuildReport report)
@@ -40,15 +36,14 @@ namespace Loveseal.WorldInteractions.Editor
                                  "found; only the first is used. Remove the extras.");
             }
 
-            // Drop any stale generated root so re-processing never duplicates objects.
             foreach (var root in scene.GetRootGameObjects())
                 if (root.name == GeneratedRootName)
                     Object.DestroyImmediate(root);
 
             Generate(scene, configs[0]);
 
-            // The config is editor-only; keep it out of the built scene. If it sits on a prefab
-            // instance, unpack first — Unity refuses to strip components off prefab instances.
+            // Strip the editor-only config from the built scene. Prefab instances must be
+            // unpacked first — Unity refuses to remove their components.
             foreach (var config in configs)
             {
                 try
@@ -64,7 +59,7 @@ namespace Loveseal.WorldInteractions.Editor
                 }
                 catch (System.Exception ex)
                 {
-                    // Harmless if it stays: it's an IEditorOnly MonoBehaviour, which the client ignores.
+                    // Harmless if it stays: the client ignores IEditorOnly MonoBehaviours.
                     Debug.LogWarning($"[WorldInteractions] Could not strip config component: {ex.Message}");
                 }
             }
@@ -72,22 +67,19 @@ namespace Loveseal.WorldInteractions.Editor
 
         private static void Generate(Scene scene, WorldInteractionsConfig config)
         {
+            // Receivers must coincide with the senders pinned to the world origin.
             var generatedRoot = new GameObject(GeneratedRootName);
             SceneManager.MoveGameObjectToScene(generatedRoot, scene);
-            // Receivers must coincide with the avatar senders pinned to the world origin.
             generatedRoot.transform.position = Vector3.zero;
             generatedRoot.transform.rotation = Quaternion.identity;
 
             int created = 0;
 
-            // Presence detector — always built, so effects can exempt beacon wearers and creator
-            // code can check PresenceDetector.IsLocalPlayerBroadcasting.
             var detectorGo = CreateChild(generatedRoot, "Presence Detector");
             var detector = detectorGo.AddUdonSharpComponent<PresenceDetector>();
             AddReceiver(detectorGo, config.PresenceTags, config.ReceiverRadius);
             UdonSharpEditorUtility.CopyProxyToUdon(detector);
 
-            // Built-in Slow.
             if (config.EnableSlow && HasAnyTag(config.SlowTags))
             {
                 var go = CreateChild(generatedRoot, "Slow");
@@ -97,11 +89,11 @@ namespace Loveseal.WorldInteractions.Editor
 
                 AddRelay(go, "Slow", config.SlowTags, effect,
                          nameof(SlowEffect.OnSlowStart), nameof(SlowEffect.OnSlowEnd),
-                         config.SlowInstanceWide, exemptPresence: true, detector, config.ReceiverRadius);
+                         config.SlowSynced, config.SlowRange, exemptPresence: true,
+                         detector, config.ReceiverRadius);
                 created++;
             }
 
-            // Built-in Rumble.
             if (config.EnableRumble && HasAnyTag(config.RumbleTags))
             {
                 var go = CreateChild(generatedRoot, "Rumble");
@@ -113,11 +105,11 @@ namespace Loveseal.WorldInteractions.Editor
 
                 AddRelay(go, "Rumble", config.RumbleTags, effect,
                          nameof(RumbleEffect.OnRumbleStart), nameof(RumbleEffect.OnRumbleEnd),
-                         config.RumbleInstanceWide, exemptPresence: true, detector, config.ReceiverRadius);
+                         config.RumbleSynced, config.RumbleRange, exemptPresence: true,
+                         detector, config.ReceiverRadius);
                 created++;
             }
 
-            // Creator-defined interactions.
             var usedNames = new HashSet<string> { "Slow", "Rumble", "Presence Detector" };
             foreach (var interaction in config.CustomInteractions)
             {
@@ -144,7 +136,8 @@ namespace Loveseal.WorldInteractions.Editor
                 var go = CreateChild(generatedRoot, name);
                 AddRelay(go, name, new[] { interaction.CollisionTag }, interaction.Target,
                          interaction.StartEvent, interaction.EndEvent,
-                         interaction.InstanceWide, interaction.ExemptPresence, detector, config.ReceiverRadius);
+                         interaction.Synced, interaction.EffectRange, interaction.ExemptPresence,
+                         detector, config.ReceiverRadius);
                 created++;
             }
 
@@ -169,27 +162,30 @@ namespace Loveseal.WorldInteractions.Editor
 
         private static void AddRelay(GameObject go, string name, IEnumerable<string> tags,
                                      UdonSharp.UdonSharpBehaviour target,
-                                     string startEvent, string endEvent, bool instanceWide, bool exemptPresence,
-                                     PresenceDetector detector, float radius)
+                                     string startEvent, string endEvent, bool synced, float effectRange,
+                                     bool exemptPresence, PresenceDetector detector, float radius)
         {
             var relay = go.AddUdonSharpComponent<ContactInteraction>();
             relay.InteractionName = name;
             relay.Target          = target;
             relay.StartEvent      = startEvent;
             relay.EndEvent        = endEvent;
-            relay.InstanceWide    = instanceWide;
+            relay.Synced          = synced;
+            relay.EffectRange     = effectRange;
             relay.ExemptPresence  = exemptPresence;
             relay.Detector        = detector;
             UdonSharpEditorUtility.CopyProxyToUdon(relay);
 
             var receiver = AddReceiver(go, tags, radius);
+            string scope = !synced ? "broadcaster only"
+                : effectRange > 0f ? $"synced, {effectRange:0.#}m range" : "synced, entire instance";
             Debug.Log($"[WorldInteractions] Created interaction '{name}' " +
-                      $"(tags '{string.Join("', '", receiver.collisionTags)}', " +
-                      $"{(instanceWide ? "instance-wide" : "local")}{(exemptPresence ? ", presence exempt" : "")}).");
+                      $"(tags '{string.Join("', '", receiver.collisionTags)}', {scope}" +
+                      $"{(exemptPresence ? ", presence exempt" : "")}).");
         }
 
-        // The receiver must sit on the same GameObject as the relay: in worlds, a receiver
-        // sends _onContactEnter/_onContactExit Udon events to the behaviours on its own object.
+        // The receiver must share a GameObject with the relay: in worlds, receivers emit
+        // contact events only to behaviours on their own object.
         private static VRCContactReceiver AddReceiver(GameObject go, IEnumerable<string> tags, float radius)
         {
             var cleanTags = new List<string>();

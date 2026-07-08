@@ -1,5 +1,4 @@
-// World Interactions — custom inspector
-// by Loveseal | v1.0.0
+// World Interactions — custom inspector | by Loveseal
 
 using System.Collections.Generic;
 using UnityEditor;
@@ -15,16 +14,14 @@ namespace Loveseal.WorldInteractions.Editor
             EditorGUILayout.LabelField($"World Interactions v{WorldInteractionsConfig.Version}",
                                        EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "All contact receivers, relays and effect handlers are generated when the world is " +
-                "built (and when entering Play Mode) — this component just configures them, and is " +
-                "stripped from the built scene. The prefab can sit anywhere; generated contacts are " +
-                "pinned to the world origin, matching compatible avatar senders (see PROTOCOL.md).",
+                "Contacts are generated at build time (and on entering Play Mode); this component " +
+                "only configures them and is stripped from the built scene. Effect ranges are " +
+                "previewed as wire-sphere gizmos around this object while it is selected — at " +
+                "runtime each range follows the broadcasting player.",
                 MessageType.Info);
 
             serializedObject.Update();
-
             DrawPropertiesExcluding(serializedObject, "m_Script");
-
             serializedObject.ApplyModifiedProperties();
 
             DrawValidation((WorldInteractionsConfig)target);
