@@ -1,0 +1,21 @@
+{
+    "name": "ClubMaul.WorldInteractions.Runtime",
+    "rootNamespace": "",
+    "references": [
+        "UdonSharp.Runtime",
+        "VRC.Udon",
+        "VRC.Udon.Serialization.OdinSerializer"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "VRCSDKBase.dll",
+        "VRC.Dynamics.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
