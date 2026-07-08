@@ -48,11 +48,13 @@ MonoBehaviour:
   PresenceTags:
   - WI/Presence
   EnableSlow: 1
-  SlowTag: WI/Slow
+  SlowTags:
+  - WI/Slow
   SlowSpeedMultiplier: 0.5
   SlowInstanceWide: 1
   EnableRumble: 1
-  RumbleTag: WI/Rumble
+  RumbleTags:
+  - WI/Rumble
   RumblePulseInterval: 0.25
   RumbleAmplitude: 0.7
   RumbleFrequency: 0.5

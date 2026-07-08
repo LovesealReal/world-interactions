@@ -1,6 +1,5 @@
 /*/
 !com.vrchat.core.*
 
-# Track the World Interactions packages
+# Track the World Interactions package
 !com.loveseal.world-interactions
-!com.clubmaul.world-interactions

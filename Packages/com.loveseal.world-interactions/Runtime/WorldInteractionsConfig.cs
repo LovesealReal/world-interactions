@@ -64,11 +64,15 @@ namespace Loveseal.WorldInteractions
         };
 
         [Header("Slow")]
-        [Tooltip("React to the standard Slow broadcast by reducing player movement speed.")]
+        [Tooltip("React to Slow broadcasts by reducing player movement speed.")]
         public bool EnableSlow = true;
 
-        [Tooltip("Collision tag the Slow feature listens for.")]
-        public string SlowTag = "WI/Slow";
+        [Tooltip("Collision tags the Slow feature listens for. Add vendor tags (e.g. " +
+                 "'ClubMaul/Slow') alongside the standard one to support other ecosystems.")]
+        public List<string> SlowTags = new List<string>
+        {
+            "WI/Slow",
+        };
 
         [Tooltip("Movement speed is multiplied by this while Slow is active.")]
         [Range(0f, 1f)]
@@ -79,11 +83,15 @@ namespace Loveseal.WorldInteractions
         public bool SlowInstanceWide = true;
 
         [Header("Rumble")]
-        [Tooltip("React to the standard Rumble broadcast by pulsing controller haptics.")]
+        [Tooltip("React to Rumble broadcasts by pulsing controller haptics.")]
         public bool EnableRumble = true;
 
-        [Tooltip("Collision tag the Rumble feature listens for.")]
-        public string RumbleTag = "WI/Rumble";
+        [Tooltip("Collision tags the Rumble feature listens for. Add vendor tags (e.g. " +
+                 "'ClubMaul/Rumble') alongside the standard one to support other ecosystems.")]
+        public List<string> RumbleTags = new List<string>
+        {
+            "WI/Rumble",
+        };
 
         [Tooltip("Seconds between haptic pulses (also each pulse's duration).")]
         [Range(0.05f, 2f)]

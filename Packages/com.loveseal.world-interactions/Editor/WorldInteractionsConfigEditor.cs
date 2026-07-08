@@ -41,8 +41,12 @@ namespace Loveseal.WorldInteractions.Editor
                 warnings.Add("No presence tags set — presence exemption will never apply.");
 
             var seenTags = new HashSet<string>();
-            if (config.EnableSlow && !string.IsNullOrWhiteSpace(config.SlowTag)) seenTags.Add(config.SlowTag.Trim());
-            if (config.EnableRumble && !string.IsNullOrWhiteSpace(config.RumbleTag)) seenTags.Add(config.RumbleTag.Trim());
+            bool slowHasTag = CollectTags(config.SlowTags, seenTags);
+            bool rumbleHasTag = CollectTags(config.RumbleTags, seenTags);
+            if (config.EnableSlow && !slowHasTag)
+                warnings.Add("Slow is enabled but has no collision tags and will be skipped.");
+            if (config.EnableRumble && !rumbleHasTag)
+                warnings.Add("Rumble is enabled but has no collision tags and will be skipped.");
 
             foreach (var interaction in config.CustomInteractions)
             {
@@ -63,6 +67,19 @@ namespace Loveseal.WorldInteractions.Editor
 
             foreach (var warning in warnings)
                 EditorGUILayout.HelpBox(warning, MessageType.Warning);
+        }
+
+        private static bool CollectTags(List<string> tags, HashSet<string> into)
+        {
+            bool any = false;
+            if (tags == null) return false;
+            foreach (var tag in tags)
+            {
+                if (string.IsNullOrWhiteSpace(tag)) continue;
+                any = true;
+                into.Add(tag.Trim());
+            }
+            return any;
         }
     }
 }

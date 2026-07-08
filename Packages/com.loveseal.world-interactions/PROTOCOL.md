@@ -47,6 +47,11 @@ Tags are namespaced `Vendor/Feature`:
 | `ClubMaul/Scanner/Show` | Staff Scanner V2 presence beacon. |
 | `ClubMaulShow` | Staff Scanner V1 legacy presence beacon (no vendor prefix, predates this convention). |
 
+Deployed Staff Scanner avatars currently broadcast only the `ClubMaul/*` tags; a future
+scanner update is planned to additionally broadcast the standard `WI/*` tags (senders carry a
+tag *list*, so this is additive and breaks nothing). Until the avatar fleet has re-uploaded,
+worlds that want Club Maul compatibility should list both tag sets.
+
 Worlds are encouraged to accept both the `WI/*` standard tags and any vendor tags relevant to
 their community — every tag field in World Interactions is a plain string list precisely so
 ecosystems can be mixed.

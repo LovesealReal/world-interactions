@@ -88,21 +88,21 @@ namespace Loveseal.WorldInteractions.Editor
             UdonSharpEditorUtility.CopyProxyToUdon(detector);
 
             // Built-in Slow.
-            if (config.EnableSlow && !string.IsNullOrWhiteSpace(config.SlowTag))
+            if (config.EnableSlow && HasAnyTag(config.SlowTags))
             {
                 var go = CreateChild(generatedRoot, "Slow");
                 var effect = go.AddUdonSharpComponent<SlowEffect>();
                 effect.SpeedMultiplier = config.SlowSpeedMultiplier;
                 UdonSharpEditorUtility.CopyProxyToUdon(effect);
 
-                AddRelay(go, "Slow", config.SlowTag, effect,
+                AddRelay(go, "Slow", config.SlowTags, effect,
                          nameof(SlowEffect.OnSlowStart), nameof(SlowEffect.OnSlowEnd),
                          config.SlowInstanceWide, exemptPresence: true, detector, config.ReceiverRadius);
                 created++;
             }
 
             // Built-in Rumble.
-            if (config.EnableRumble && !string.IsNullOrWhiteSpace(config.RumbleTag))
+            if (config.EnableRumble && HasAnyTag(config.RumbleTags))
             {
                 var go = CreateChild(generatedRoot, "Rumble");
                 var effect = go.AddUdonSharpComponent<RumbleEffect>();
@@ -111,7 +111,7 @@ namespace Loveseal.WorldInteractions.Editor
                 effect.Frequency     = config.RumbleFrequency;
                 UdonSharpEditorUtility.CopyProxyToUdon(effect);
 
-                AddRelay(go, "Rumble", config.RumbleTag, effect,
+                AddRelay(go, "Rumble", config.RumbleTags, effect,
                          nameof(RumbleEffect.OnRumbleStart), nameof(RumbleEffect.OnRumbleEnd),
                          config.RumbleInstanceWide, exemptPresence: true, detector, config.ReceiverRadius);
                 created++;
@@ -142,7 +142,7 @@ namespace Loveseal.WorldInteractions.Editor
                 }
 
                 var go = CreateChild(generatedRoot, name);
-                AddRelay(go, name, interaction.CollisionTag, interaction.Target,
+                AddRelay(go, name, new[] { interaction.CollisionTag }, interaction.Target,
                          interaction.StartEvent, interaction.EndEvent,
                          interaction.InstanceWide, interaction.ExemptPresence, detector, config.ReceiverRadius);
                 created++;
@@ -159,7 +159,16 @@ namespace Loveseal.WorldInteractions.Editor
             return go;
         }
 
-        private static void AddRelay(GameObject go, string name, string tag, UdonSharp.UdonSharpBehaviour target,
+        private static bool HasAnyTag(IEnumerable<string> tags)
+        {
+            if (tags == null) return false;
+            foreach (var tag in tags)
+                if (!string.IsNullOrWhiteSpace(tag)) return true;
+            return false;
+        }
+
+        private static void AddRelay(GameObject go, string name, IEnumerable<string> tags,
+                                     UdonSharp.UdonSharpBehaviour target,
                                      string startEvent, string endEvent, bool instanceWide, bool exemptPresence,
                                      PresenceDetector detector, float radius)
         {
@@ -173,14 +182,15 @@ namespace Loveseal.WorldInteractions.Editor
             relay.Detector        = detector;
             UdonSharpEditorUtility.CopyProxyToUdon(relay);
 
-            AddReceiver(go, new[] { tag }, radius);
-            Debug.Log($"[WorldInteractions] Created interaction '{name}' (tag '{tag.Trim()}', " +
+            var receiver = AddReceiver(go, tags, radius);
+            Debug.Log($"[WorldInteractions] Created interaction '{name}' " +
+                      $"(tags '{string.Join("', '", receiver.collisionTags)}', " +
                       $"{(instanceWide ? "instance-wide" : "local")}{(exemptPresence ? ", presence exempt" : "")}).");
         }
 
         // The receiver must sit on the same GameObject as the relay: in worlds, a receiver
         // sends _onContactEnter/_onContactExit Udon events to the behaviours on its own object.
-        private static void AddReceiver(GameObject go, IEnumerable<string> tags, float radius)
+        private static VRCContactReceiver AddReceiver(GameObject go, IEnumerable<string> tags, float radius)
         {
             var cleanTags = new List<string>();
             foreach (var tag in tags)
@@ -197,6 +207,7 @@ namespace Loveseal.WorldInteractions.Editor
             receiver.localOnly     = false;
             receiver.receiverType  = ContactReceiver.ReceiverType.Constant;
             receiver.collisionTags = cleanTags;
+            return receiver;
         }
     }
 }

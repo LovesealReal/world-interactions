@@ -11,6 +11,8 @@ All notable changes to the World Interactions package are documented in this fil
   world-origin contact receivers, relays, and effect handlers when the world builds.
 - Built-in **Slow** effect (`WI/Slow`): scales player movement speed while active.
 - Built-in **Rumble** effect (`WI/Rumble`): pulses controller haptics while active.
+- Built-in features and presence detection accept **tag lists**, so one world can serve
+  multiple ecosystems (e.g. `WI/Slow` + `ClubMaul/Slow`) with a single receiver each.
 - **Presence detection** (`WI/Presence`): built-in effects skip presence-beacon wearers
   (e.g. staff badges), and `PresenceDetector.IsLocalPlayerBroadcasting` is available to
   creator code.
