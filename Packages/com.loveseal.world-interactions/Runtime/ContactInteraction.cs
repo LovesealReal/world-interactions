@@ -7,33 +7,56 @@ using VRC.SDKBase;
 
 namespace Loveseal.WorldInteractions
 {
+    public enum FalloffMode
+    {
+        None = 0,   // full intensity anywhere in range
+        Linear = 1, // fades linearly to 0 at the range edge
+        Smooth = 2, // smoothstep fade
+    }
+
+    public enum RangeMode
+    {
+        Players = 0,      // events fire per player as they enter/leave the range
+        WorldObjects = 1, // events fire while broadcasting; query range per object via GetIntensity
+    }
+
     /// <summary>
     /// Bridges one avatar contact tag to creator code. Senders are local-only, so a contact is
     /// only detected on the broadcaster's client. When Synced, that client owns this object and
-    /// syncs the state; every client then applies the effect while its player is within
-    /// EffectRange of the broadcaster (the object's owner).
+    /// syncs the state; effects are ranged around the broadcaster (the owner). Before the start
+    /// event, the relay assigns itself to a 'SourceInteraction' variable on the target (if
+    /// declared) so handlers can read LocalIntensity or call GetIntensity.
     /// </summary>
     [UdonBehaviourSyncMode(BehaviourSyncMode.Manual)]
     public class ContactInteraction : UdonSharpBehaviour
     {
-        private const float RangeCheckInterval = 0.25f;
+        private const float TickInterval = 0.25f;
+        private const string SourceVariable = "SourceInteraction";
 
         [HideInInspector] public string InteractionName;
         [HideInInspector] public UdonSharpBehaviour Target;
         [HideInInspector] public string StartEvent;
         [HideInInspector] public string EndEvent;
         [HideInInspector] public bool Synced;
-        [HideInInspector] public float EffectRange; // meters around the broadcaster; 0 = entire instance
+        [HideInInspector] public float EffectRange; // meters around the broadcaster; 0 = unlimited
+        [HideInInspector] public FalloffMode Falloff;
+        [HideInInspector] public RangeMode Mode;
         [HideInInspector] public bool ExemptPresence;
         [HideInInspector] public PresenceDetector Detector;
 
-        /// <summary>True while the broadcast is active on this client (before range/exemption).</summary>
+        /// <summary>True while the broadcast is active on this client.</summary>
         [HideInInspector] public bool IsActive;
+
+        /// <summary>Falloff intensity (0-1) at the local player, updated every tick while active.</summary>
+        [HideInInspector] public float LocalIntensity;
+
+        /// <summary>Broadcaster position, updated every tick while active.</summary>
+        [HideInInspector] public Vector3 BroadcasterPosition;
 
         [UdonSynced] private bool _syncedActive;
         private int _localContacts;
         private bool _effectOn;
-        private bool _rangeLoopScheduled;
+        private bool _tickScheduled;
 
         public override void OnContactEnter(ContactEnterInfo contactInfo)
         {
@@ -99,35 +122,50 @@ namespace Loveseal.WorldInteractions
 
             if (!active)
             {
+                LocalIntensity = 0f;
                 SetEffect(false);
+                return;
             }
-            else if (Synced && EffectRange > 0f)
+            if (!_tickScheduled) _Tick();
+        }
+
+        // Tracks the broadcaster and gates Players-mode effects by range while active.
+        public void _Tick()
+        {
+            _tickScheduled = false;
+            if (!IsActive) return;
+
+            VRCPlayerApi owner = Networking.GetOwner(gameObject);
+            VRCPlayerApi local = Networking.LocalPlayer;
+            if (Utilities.IsValid(owner) && Utilities.IsValid(local))
             {
-                if (!_rangeLoopScheduled) _RangeCheck();
+                BroadcasterPosition = owner.GetPosition();
+                LocalIntensity = GetIntensity(local.GetPosition());
             }
             else
             {
-                SetEffect(true);
+                LocalIntensity = 0f;
             }
+
+            SetEffect(Mode == RangeMode.WorldObjects || LocalIntensity > 0f);
+
+            _tickScheduled = true;
+            SendCustomEventDelayedSeconds(nameof(_Tick), TickInterval);
         }
 
-        public void _RangeCheck()
+        /// <summary>Falloff intensity (0-1) at a world position, relative to the broadcaster.</summary>
+        public float GetIntensity(Vector3 worldPosition)
         {
-            _rangeLoopScheduled = false;
-            if (!IsActive || !Synced || EffectRange <= 0f) return;
+            if (!IsActive) return 0f;
+            if (EffectRange <= 0f) return 1f;
 
-            SetEffect(IsLocalPlayerInRange());
-            _rangeLoopScheduled = true;
-            SendCustomEventDelayedSeconds(nameof(_RangeCheck), RangeCheckInterval);
-        }
+            float distance = Vector3.Distance(worldPosition, BroadcasterPosition);
+            if (distance > EffectRange) return 0f;
 
-        private bool IsLocalPlayerInRange()
-        {
-            VRCPlayerApi owner = Networking.GetOwner(gameObject);
-            VRCPlayerApi local = Networking.LocalPlayer;
-            if (!Utilities.IsValid(owner) || !Utilities.IsValid(local)) return false;
-            if (owner.isLocal) return true;
-            return Vector3.Distance(owner.GetPosition(), local.GetPosition()) <= EffectRange;
+            float t = 1f - distance / EffectRange;
+            if (Falloff == FalloffMode.Linear) return t;
+            if (Falloff == FalloffMode.Smooth) return t * t * (3f - 2f * t);
+            return 1f;
         }
 
         private void SetEffect(bool on)
@@ -138,7 +176,11 @@ namespace Loveseal.WorldInteractions
             {
                 if (ExemptPresence && Detector != null && Detector.IsLocalPlayerBroadcasting) return;
                 _effectOn = true;
-                if (Target != null && !string.IsNullOrEmpty(StartEvent)) Target.SendCustomEvent(StartEvent);
+                if (Target != null)
+                {
+                    Target.SetProgramVariable(SourceVariable, this);
+                    if (!string.IsNullOrEmpty(StartEvent)) Target.SendCustomEvent(StartEvent);
+                }
             }
             else
             {

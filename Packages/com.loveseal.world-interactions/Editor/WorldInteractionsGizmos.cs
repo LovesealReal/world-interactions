@@ -26,7 +26,8 @@ namespace Loveseal.WorldInteractions.Editor
             if (config.CustomInteractions == null) return;
             foreach (var interaction in config.CustomInteractions)
             {
-                if (interaction == null || !interaction.Synced) continue;
+                if (interaction == null) continue;
+                if (!interaction.Synced && interaction.Mode != RangeMode.WorldObjects) continue;
                 string label = string.IsNullOrWhiteSpace(interaction.Name)
                     ? interaction.CollisionTag
                     : interaction.Name;

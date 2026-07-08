@@ -39,6 +39,7 @@ Tags are namespaced `Vendor/Feature`:
 | `WI/Slow` | Standard Slow request: reduce player movement speed while active. |
 | `WI/Rumble` | Standard Rumble request: pulse controller haptics while active. |
 | `WI/Presence` | Standard presence beacon: "I'm wearing the badge" — broadcast while the wearer's system is on, used by worlds to exempt wearers from effects. |
+| `WI/Unique` | Standard wildcard: every compatible avatar can broadcast it, and each world decides what it does (bind it to your own handler). |
 | `MyWorld/...` | Anything else: define your own tags under your own vendor prefix. |
 
 Vendor ecosystems that predate or extend this convention keep working: senders carry a tag

@@ -85,12 +85,12 @@ namespace Loveseal.WorldInteractions.Editor
                 var go = CreateChild(generatedRoot, "Slow");
                 var effect = go.AddUdonSharpComponent<SlowEffect>();
                 effect.SpeedMultiplier = config.SlowSpeedMultiplier;
-                UdonSharpEditorUtility.CopyProxyToUdon(effect);
 
-                AddRelay(go, "Slow", config.SlowTags, effect,
-                         nameof(SlowEffect.OnSlowStart), nameof(SlowEffect.OnSlowEnd),
-                         config.SlowSynced, config.SlowRange, exemptPresence: true,
-                         detector, config.ReceiverRadius);
+                effect.SourceInteraction = AddRelay(go, "Slow", config.SlowTags, effect,
+                    nameof(SlowEffect.OnSlowStart), nameof(SlowEffect.OnSlowEnd),
+                    config.SlowSynced, config.SlowRange, config.SlowFalloff, RangeMode.Players,
+                    exemptPresence: true, detector, config.ReceiverRadius);
+                UdonSharpEditorUtility.CopyProxyToUdon(effect);
                 created++;
             }
 
@@ -101,12 +101,12 @@ namespace Loveseal.WorldInteractions.Editor
                 effect.PulseInterval = config.RumblePulseInterval;
                 effect.Amplitude     = config.RumbleAmplitude;
                 effect.Frequency     = config.RumbleFrequency;
-                UdonSharpEditorUtility.CopyProxyToUdon(effect);
 
-                AddRelay(go, "Rumble", config.RumbleTags, effect,
-                         nameof(RumbleEffect.OnRumbleStart), nameof(RumbleEffect.OnRumbleEnd),
-                         config.RumbleSynced, config.RumbleRange, exemptPresence: true,
-                         detector, config.ReceiverRadius);
+                effect.SourceInteraction = AddRelay(go, "Rumble", config.RumbleTags, effect,
+                    nameof(RumbleEffect.OnRumbleStart), nameof(RumbleEffect.OnRumbleEnd),
+                    config.RumbleSynced, config.RumbleRange, config.RumbleFalloff, RangeMode.Players,
+                    exemptPresence: true, detector, config.ReceiverRadius);
+                UdonSharpEditorUtility.CopyProxyToUdon(effect);
                 created++;
             }
 
@@ -136,8 +136,8 @@ namespace Loveseal.WorldInteractions.Editor
                 var go = CreateChild(generatedRoot, name);
                 AddRelay(go, name, new[] { interaction.CollisionTag }, interaction.Target,
                          interaction.StartEvent, interaction.EndEvent,
-                         interaction.Synced, interaction.EffectRange, interaction.ExemptPresence,
-                         detector, config.ReceiverRadius);
+                         interaction.Synced, interaction.EffectRange, interaction.Falloff,
+                         interaction.Mode, interaction.ExemptPresence, detector, config.ReceiverRadius);
                 created++;
             }
 
@@ -160,10 +160,11 @@ namespace Loveseal.WorldInteractions.Editor
             return false;
         }
 
-        private static void AddRelay(GameObject go, string name, IEnumerable<string> tags,
-                                     UdonSharp.UdonSharpBehaviour target,
-                                     string startEvent, string endEvent, bool synced, float effectRange,
-                                     bool exemptPresence, PresenceDetector detector, float radius)
+        private static ContactInteraction AddRelay(GameObject go, string name, IEnumerable<string> tags,
+                                                   UdonSharp.UdonSharpBehaviour target,
+                                                   string startEvent, string endEvent, bool synced,
+                                                   float effectRange, FalloffMode falloff, RangeMode mode,
+                                                   bool exemptPresence, PresenceDetector detector, float radius)
         {
             var relay = go.AddUdonSharpComponent<ContactInteraction>();
             relay.InteractionName = name;
@@ -172,16 +173,19 @@ namespace Loveseal.WorldInteractions.Editor
             relay.EndEvent        = endEvent;
             relay.Synced          = synced;
             relay.EffectRange     = effectRange;
+            relay.Falloff         = falloff;
+            relay.Mode            = mode;
             relay.ExemptPresence  = exemptPresence;
             relay.Detector        = detector;
             UdonSharpEditorUtility.CopyProxyToUdon(relay);
 
             var receiver = AddReceiver(go, tags, radius);
             string scope = !synced ? "broadcaster only"
-                : effectRange > 0f ? $"synced, {effectRange:0.#}m range" : "synced, entire instance";
+                : effectRange > 0f ? $"synced, {effectRange:0.#}m range, {falloff} falloff" : "synced, unlimited";
             Debug.Log($"[WorldInteractions] Created interaction '{name}' " +
-                      $"(tags '{string.Join("', '", receiver.collisionTags)}', {scope}" +
+                      $"(tags '{string.Join("', '", receiver.collisionTags)}', {scope}, {mode}" +
                       $"{(exemptPresence ? ", presence exempt" : "")}).");
+            return relay;
         }
 
         // The receiver must share a GameObject with the relay: in worlds, receivers emit

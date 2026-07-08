@@ -7,8 +7,8 @@ using VRC.SDKBase;
 namespace Loveseal.WorldInteractions
 {
     /// <summary>
-    /// Pulses both controllers' haptics on an interval while active (no-op on desktop).
-    /// Driven by a ContactInteraction relay.
+    /// Pulses both controllers' haptics while active, with strength weighted by the
+    /// interaction's falloff intensity (strongest at the broadcaster). No-op on desktop.
     /// </summary>
     [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
     public class RumbleEffect : UdonSharpBehaviour
@@ -17,13 +17,15 @@ namespace Loveseal.WorldInteractions
         [Range(0.05f, 2f)]
         public float PulseInterval = 0.25f;
 
-        [Tooltip("Haptic pulse strength (0-1).")]
+        [Tooltip("Haptic pulse strength at full intensity (0-1).")]
         [Range(0f, 1f)]
         public float Amplitude = 0.7f;
 
         [Tooltip("Haptic pulse frequency (0-1).")]
         [Range(0f, 1f)]
         public float Frequency = 0.5f;
+
+        [HideInInspector] public ContactInteraction SourceInteraction; // injected by the relay
 
         private bool _active;
         private bool _pulseScheduled;
@@ -50,8 +52,13 @@ namespace Loveseal.WorldInteractions
             VRCPlayerApi player = Networking.LocalPlayer;
             if (player != null && player.IsUserInVR())
             {
-                player.PlayHapticEventInHand(VRC_Pickup.PickupHand.Left, PulseInterval, Amplitude, Frequency);
-                player.PlayHapticEventInHand(VRC_Pickup.PickupHand.Right, PulseInterval, Amplitude, Frequency);
+                float intensity = SourceInteraction != null ? SourceInteraction.LocalIntensity : 1f;
+                float amplitude = Amplitude * intensity;
+                if (amplitude > 0f)
+                {
+                    player.PlayHapticEventInHand(VRC_Pickup.PickupHand.Left, PulseInterval, amplitude, Frequency);
+                    player.PlayHapticEventInHand(VRC_Pickup.PickupHand.Right, PulseInterval, amplitude, Frequency);
+                }
             }
 
             _pulseScheduled = true;

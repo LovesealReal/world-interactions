@@ -19,12 +19,21 @@ namespace Loveseal.WorldInteractions
         public string CollisionTag = "";
 
         [Tooltip("Off: events fire only on the broadcaster's own client. On: state is synced and " +
-                 "events fire for every player within Range of the broadcaster (late joiners included).")]
+                 "other clients react too (late joiners included).")]
         public bool Synced = false;
 
-        [Tooltip("Effect radius in meters around the broadcasting player (synced only). 0 = entire instance.")]
+        [Tooltip("Players: events fire per player as they enter/leave the range. World Objects: " +
+                 "events fire while broadcasting, and your handler queries the range per object " +
+                 "via GetIntensity (see ProximityObjectToggler).")]
+        public RangeMode Mode = RangeMode.Players;
+
+        [Tooltip("Effect radius in meters around the broadcasting player. 0 = unlimited.")]
         [Range(0f, 100f)]
         public float EffectRange = 8f;
+
+        [Tooltip("How intensity fades from the broadcaster (1) to the range edge (0). Read it " +
+                 "via the relay's LocalIntensity/GetIntensity.")]
+        public FalloffMode Falloff = FalloffMode.Linear;
 
         [Tooltip("Skip the events on clients whose local player broadcasts a Presence Tag.")]
         public bool ExemptPresence = false;
@@ -82,6 +91,10 @@ namespace Loveseal.WorldInteractions
         [Range(0f, 100f)]
         public float SlowRange = 8f;
 
+        [Tooltip("How the slow fades with distance: full multiplier at the broadcaster, normal " +
+                 "speed at the range edge.")]
+        public FalloffMode SlowFalloff = FalloffMode.Linear;
+
         [Header("Rumble")]
         [Tooltip("React to Rumble broadcasts by pulsing controller haptics.")]
         public bool EnableRumble = true;
@@ -113,6 +126,9 @@ namespace Loveseal.WorldInteractions
                  "Previewed as a gizmo while this object is selected.")]
         [Range(0f, 100f)]
         public float RumbleRange = 8f;
+
+        [Tooltip("How the rumble strength fades with distance from the broadcaster.")]
+        public FalloffMode RumbleFalloff = FalloffMode.Linear;
 
         [Header("Custom Interactions")]
         [Tooltip("Your own contact tags and the code to run when they trigger.")]

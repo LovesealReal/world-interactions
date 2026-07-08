@@ -24,7 +24,7 @@ This package generates a matching `VRCContactReceiver` at the world origin for e
 | **Slow** | `WI/Slow` | Multiplies walk/run/strafe speed by 0.5× for players within range while active. |
 | **Rumble** | `WI/Rumble` | Pulses both controllers' haptics for players within range while active. |
 
-Each feature listens on a **list of tags**, so you can accept several ecosystems at once (e.g. a community's vendor tags next to the standard ones). Both are **synced and ranged** by default: the broadcasting client syncs the state (late joiners included), and each player is affected while within the **effect range** — default 8 m around the broadcaster, configurable per feature, `0` = the entire instance. Selecting the prefab shows a **wire-sphere gizmo per range** in the scene view for scale reference. Both features **exempt presence wearers**: any player whose own presence beacon is active is skipped.
+Each feature listens on a **list of tags**, so you can accept several ecosystems at once (e.g. a community's vendor tags next to the standard ones). Both are **synced and ranged** by default: the broadcasting client syncs the state (late joiners included), and each player is affected while within the **effect range** — default 8 m around the broadcaster, configurable per feature, `0` = the entire instance. Each feature also has a **falloff** (default Linear): rumble weakens and the slow eases back to normal speed toward the range edge; `None` keeps full intensity anywhere in range. Selecting the prefab shows a **wire-sphere gizmo per range** in the scene view for scale reference. Both features **exempt presence wearers**: any player whose own presence beacon is active is skipped.
 
 ### Presence detection
 
@@ -49,14 +49,28 @@ Your own code can check it too: the detector exposes a public `IsLocalPlayerBroa
 3. On the **World Interactions** component, add an entry under **Custom Interactions**:
    - **Name** — label for the generated object (e.g. `Confetti`).
    - **Collision Tag** — the tag the avatar broadcasts (e.g. `MyWorld/Confetti`).
-   - **Synced** — off: events fire only on the broadcaster's own client; on: state is synced and events fire for players within range (late joiners included).
-   - **Effect Range** — radius in meters around the broadcaster (synced only), previewed as a gizmo; `0` = entire instance.
+   - **Synced** — off: events fire only on the broadcaster's own client; on: state is synced to everyone (late joiners included).
+   - **Mode** — *Players*: events fire per player entering/leaving the range. *World Objects*: events fire while broadcasting, and your handler decides per object (see below).
+   - **Effect Range** / **Falloff** — radius around the broadcaster (previewed as a gizmo; `0` = unlimited) and how intensity fades across it.
    - **Exempt Presence** — skip the events on presence-wearer clients.
    - **Target / Start Event / End Event** — your behaviour and method names.
 
-A matching receiver + relay is generated at the next build. The relay also exposes a public `IsActive` bool you can poll.
+A matching receiver + relay is generated at the next build.
 
-An `ExampleInteractionHandler` (toggles a GameObject on/off) ships with the package as a starting point.
+### Intensity & range queries in your handler
+
+Declare `[HideInInspector] public ContactInteraction SourceInteraction;` on your handler — the relay assigns itself to it before firing the start event. Through it you can read:
+
+- `LocalIntensity` — falloff intensity (0–1) at the local player, refreshed every 0.25 s (this is what the built-in effects use).
+- `GetIntensity(Vector3 worldPosition)` — intensity at any position, for object-based effects.
+- `BroadcasterPosition` / `IsActive` — the broadcaster's position and broadcast state.
+
+Two sample handlers ship with the package:
+
+- `ExampleInteractionHandler` — toggles one GameObject on start/end.
+- `ProximityObjectToggler` — for **World Objects** mode: give it a list of objects (e.g. flickering lights) and each one is enabled only while inside the broadcaster's range, following them as they move.
+
+Tip: compatible avatars broadcast the standard **`WI/Unique`** wildcard tag — bind it to a custom interaction to give it a meaning specific to your world.
 
 ## Supporting other ecosystems
 

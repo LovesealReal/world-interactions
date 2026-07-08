@@ -14,6 +14,13 @@ All notable changes to the World Interactions package are documented in this fil
 - Synced effects are **ranged**: they apply within a configurable radius around the
   broadcasting player (default 8 m, `0` = entire instance), with a scene-view gizmo
   previewing each range while the prefab is selected.
+- **Falloff** per interaction (None/Linear/Smooth): rumble strength and slow amount fade
+  toward the range edge; handlers read intensity via `LocalIntensity`/`GetIntensity`.
+- **World Objects range mode**: interactions can range over scene objects instead of
+  players, with a bundled `ProximityObjectToggler` handler (e.g. lights that flicker
+  only within the broadcaster's radius).
+- Relays inject themselves into a handler's `SourceInteraction` variable before events,
+  exposing `LocalIntensity`, `GetIntensity(position)`, and `BroadcasterPosition`.
 - Built-in features and presence detection accept **tag lists**, so one world can serve
   multiple ecosystems (the standard tags plus any vendor tags) with a single receiver each.
 - **Presence detection** (`WI/Presence`): built-in effects skip presence-beacon wearers
