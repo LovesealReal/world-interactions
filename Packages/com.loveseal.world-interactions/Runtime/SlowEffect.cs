@@ -5,10 +5,10 @@ using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
 
-namespace ClubMaul.WorldInteractions
+namespace Loveseal.WorldInteractions
 {
     /// <summary>
-    /// Built-in handler for the Staff Scanner's 'Slow' world feature. While active, the local
+    /// Built-in handler for the standard Slow broadcast. While active, the local
     /// player's walk/run/strafe speeds are multiplied by <see cref="SpeedMultiplier"/>; the
     /// original speeds are captured on activation and restored afterwards.
     /// Driven by a ContactInteraction relay via OnSlowStart/OnSlowEnd.

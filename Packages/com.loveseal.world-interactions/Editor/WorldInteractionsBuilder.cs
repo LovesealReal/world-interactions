@@ -1,9 +1,9 @@
 // World Interactions — build-time generator
 // by Loveseal | v1.0.0
 //
-// Mirrors the Staff Scanner V2 avatar package: nothing but a config component lives in the
-// scene; every contact receiver, relay and effect handler is generated when the world builds
-// (and when entering Play Mode), then the config is stripped from the built scene.
+// Nothing but a config component lives in the scene; every contact receiver, relay and
+// effect handler is generated when the world builds (and when entering Play Mode), then
+// the config is stripped from the built scene.
 
 using System.Collections.Generic;
 using UdonSharpEditor;
@@ -15,11 +15,11 @@ using UnityEngine.SceneManagement;
 using VRC.Dynamics;
 using VRC.SDK3.Dynamics.Contact.Components;
 
-namespace ClubMaul.WorldInteractions.Editor
+namespace Loveseal.WorldInteractions.Editor
 {
     public class WorldInteractionsBuilder : IProcessSceneWithReport
     {
-        public const string GeneratedRootName = "ClubMaul World Interactions (Generated)";
+        public const string GeneratedRootName = "World Interactions (Generated)";
 
         // Must run before UdonSharp's [PostProcessScene] pass (order 0), which copies proxy
         // state onto the backing UdonBehaviours and strips proxies from player builds, and
@@ -74,17 +74,17 @@ namespace ClubMaul.WorldInteractions.Editor
         {
             var generatedRoot = new GameObject(GeneratedRootName);
             SceneManager.MoveGameObjectToScene(generatedRoot, scene);
-            // Receivers must coincide with the scanner's world-origin-pinned senders.
+            // Receivers must coincide with the avatar senders pinned to the world origin.
             generatedRoot.transform.position = Vector3.zero;
             generatedRoot.transform.rotation = Quaternion.identity;
 
             int created = 0;
 
-            // Staff detector — always built, so effects can exempt scanner wearers and creator
-            // code can check StaffScannerDetector.IsLocalPlayerStaff.
-            var detectorGo = CreateChild(generatedRoot, "Staff Scanner Detector");
-            var detector = detectorGo.AddUdonSharpComponent<StaffScannerDetector>();
-            AddReceiver(detectorGo, config.StaffScannerTags, config.ReceiverRadius);
+            // Presence detector — always built, so effects can exempt beacon wearers and creator
+            // code can check PresenceDetector.IsLocalPlayerBroadcasting.
+            var detectorGo = CreateChild(generatedRoot, "Presence Detector");
+            var detector = detectorGo.AddUdonSharpComponent<PresenceDetector>();
+            AddReceiver(detectorGo, config.PresenceTags, config.ReceiverRadius);
             UdonSharpEditorUtility.CopyProxyToUdon(detector);
 
             // Built-in Slow.
@@ -97,7 +97,7 @@ namespace ClubMaul.WorldInteractions.Editor
 
                 AddRelay(go, "Slow", config.SlowTag, effect,
                          nameof(SlowEffect.OnSlowStart), nameof(SlowEffect.OnSlowEnd),
-                         config.SlowInstanceWide, exemptStaff: true, detector, config.ReceiverRadius);
+                         config.SlowInstanceWide, exemptPresence: true, detector, config.ReceiverRadius);
                 created++;
             }
 
@@ -113,12 +113,12 @@ namespace ClubMaul.WorldInteractions.Editor
 
                 AddRelay(go, "Rumble", config.RumbleTag, effect,
                          nameof(RumbleEffect.OnRumbleStart), nameof(RumbleEffect.OnRumbleEnd),
-                         config.RumbleInstanceWide, exemptStaff: true, detector, config.ReceiverRadius);
+                         config.RumbleInstanceWide, exemptPresence: true, detector, config.ReceiverRadius);
                 created++;
             }
 
             // Creator-defined interactions.
-            var usedNames = new HashSet<string> { "Slow", "Rumble", "Staff Scanner Detector" };
+            var usedNames = new HashSet<string> { "Slow", "Rumble", "Presence Detector" };
             foreach (var interaction in config.CustomInteractions)
             {
                 if (interaction == null) continue;
@@ -144,11 +144,11 @@ namespace ClubMaul.WorldInteractions.Editor
                 var go = CreateChild(generatedRoot, name);
                 AddRelay(go, name, interaction.CollisionTag, interaction.Target,
                          interaction.StartEvent, interaction.EndEvent,
-                         interaction.InstanceWide, interaction.ExemptStaff, detector, config.ReceiverRadius);
+                         interaction.InstanceWide, interaction.ExemptPresence, detector, config.ReceiverRadius);
                 created++;
             }
 
-            Debug.Log($"[WorldInteractions] Generated staff detector + {created} interaction contact(s) " +
+            Debug.Log($"[WorldInteractions] Generated presence detector + {created} interaction contact(s) " +
                       $"at world origin for scene '{scene.name}'.");
         }
 
@@ -160,8 +160,8 @@ namespace ClubMaul.WorldInteractions.Editor
         }
 
         private static void AddRelay(GameObject go, string name, string tag, UdonSharp.UdonSharpBehaviour target,
-                                     string startEvent, string endEvent, bool instanceWide, bool exemptStaff,
-                                     StaffScannerDetector detector, float radius)
+                                     string startEvent, string endEvent, bool instanceWide, bool exemptPresence,
+                                     PresenceDetector detector, float radius)
         {
             var relay = go.AddUdonSharpComponent<ContactInteraction>();
             relay.InteractionName = name;
@@ -169,13 +169,13 @@ namespace ClubMaul.WorldInteractions.Editor
             relay.StartEvent      = startEvent;
             relay.EndEvent        = endEvent;
             relay.InstanceWide    = instanceWide;
-            relay.ExemptStaff     = exemptStaff;
-            relay.StaffDetector   = detector;
+            relay.ExemptPresence  = exemptPresence;
+            relay.Detector        = detector;
             UdonSharpEditorUtility.CopyProxyToUdon(relay);
 
             AddReceiver(go, new[] { tag }, radius);
             Debug.Log($"[WorldInteractions] Created interaction '{name}' (tag '{tag.Trim()}', " +
-                      $"{(instanceWide ? "instance-wide" : "local")}{(exemptStaff ? ", staff exempt" : "")}).");
+                      $"{(instanceWide ? "instance-wide" : "local")}{(exemptPresence ? ", presence exempt" : "")}).");
         }
 
         // The receiver must sit on the same GameObject as the relay: in worlds, a receiver

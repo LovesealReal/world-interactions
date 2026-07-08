@@ -1,5 +1,5 @@
 {
-    "name": "ClubMaul.WorldInteractions.Runtime",
+    "name": "Loveseal.WorldInteractions.Runtime",
     "rootNamespace": "",
     "references": [
         "UdonSharp.Runtime",

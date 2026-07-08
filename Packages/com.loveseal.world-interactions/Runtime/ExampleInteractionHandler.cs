@@ -12,7 +12,7 @@
 using UdonSharp;
 using UnityEngine;
 
-namespace ClubMaul.WorldInteractions
+namespace Loveseal.WorldInteractions
 {
     /// <summary>Toggles a GameObject while its interaction is active — e.g. a light, a
     /// particle system, or a whole effects rig.</summary>

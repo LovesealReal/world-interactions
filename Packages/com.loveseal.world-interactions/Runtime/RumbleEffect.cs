@@ -5,10 +5,10 @@ using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
 
-namespace ClubMaul.WorldInteractions
+namespace Loveseal.WorldInteractions
 {
     /// <summary>
-    /// Built-in handler for the Staff Scanner's 'Rumble' world feature. While active, both of
+    /// Built-in handler for the standard Rumble broadcast. While active, both of
     /// the local player's controllers pulse on an interval (no-op for desktop players).
     /// Driven by a ContactInteraction relay via OnRumbleStart/OnRumbleEnd.
     /// </summary>

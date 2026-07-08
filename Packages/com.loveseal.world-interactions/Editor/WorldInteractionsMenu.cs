@@ -7,30 +7,31 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace ClubMaul.WorldInteractions.Editor
+namespace Loveseal.WorldInteractions.Editor
 {
     public static class WorldInteractionsMenu
     {
-        // GUID of "Club Maul World Interactions.prefab" at the package root.
+        // GUID of "World Interactions.prefab" at the package root.
         private const string PrefabGuid = "66eda577d71041fc8cc90e28a2a19bf2";
 
-        [MenuItem("Tools/Club Maul/Initialize World Interactions", false, 0)]
+        [MenuItem("Tools/World Interactions/Initialize World Interactions", false, 0)]
         private static void InitializeFromToolsMenu()
         {
-            SpawnWorldInteractions(null);
+            SpawnPrefab(null, PrefabGuid, "World Interactions");
         }
 
         // Adding the "GameObject/" prefix makes this show up in the hierarchy
         // right-click context menu (and the top GameObject menu).
-        [MenuItem("GameObject/Club Maul/World Interactions", false, 10)]
+        [MenuItem("GameObject/World Interactions", false, 10)]
         private static void InitializeFromHierarchy(MenuCommand command)
         {
-            SpawnWorldInteractions(command.context as GameObject);
+            SpawnPrefab(command.context as GameObject, PrefabGuid, "World Interactions");
         }
 
-        private static void SpawnWorldInteractions(GameObject parent)
+        /// <summary>Shared prefab spawner, also used by preset packages (e.g. Club Maul).</summary>
+        public static void SpawnPrefab(GameObject parent, string prefabGuid, string displayName)
         {
-            var path = AssetDatabase.GUIDToAssetPath(PrefabGuid);
+            var path = AssetDatabase.GUIDToAssetPath(prefabGuid);
             var prefab = string.IsNullOrEmpty(path)
                 ? null
                 : AssetDatabase.LoadAssetAtPath<GameObject>(path);
@@ -38,9 +39,9 @@ namespace ClubMaul.WorldInteractions.Editor
             if (prefab == null)
             {
                 EditorUtility.DisplayDialog(
-                    "World Interactions",
-                    "Could not find the World Interactions prefab. Make sure the " +
-                    "Club Maul World Interactions package is installed correctly.",
+                    displayName,
+                    $"Could not find the {displayName} prefab. Make sure the " +
+                    "package is installed correctly.",
                     "OK");
                 return;
             }
@@ -53,7 +54,7 @@ namespace ClubMaul.WorldInteractions.Editor
 
             if (parent != null)
             {
-                Undo.SetTransformParent(instance.transform, parent.transform, "Spawn World Interactions");
+                Undo.SetTransformParent(instance.transform, parent.transform, $"Spawn {displayName}");
             }
             instance.transform.position = Vector3.zero;
             instance.transform.rotation = Quaternion.identity;
@@ -67,7 +68,7 @@ namespace ClubMaul.WorldInteractions.Editor
                 SceneManager.MoveGameObjectToScene(instance, targetScene);
             }
 
-            Undo.RegisterCreatedObjectUndo(instance, "Spawn World Interactions");
+            Undo.RegisterCreatedObjectUndo(instance, $"Spawn {displayName}");
             Selection.activeGameObject = instance;
             EditorGUIUtility.PingObject(instance);
             EditorSceneManager.MarkSceneDirty(instance.scene);

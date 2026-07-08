@@ -1,5 +1,6 @@
 // World Interactions — by Loveseal | v1.0.0
-// Scene-side counterpart to the Staff Scanner V2 avatar package.
+// World-side receiver system for avatar contact broadcasts. See PROTOCOL.md for the
+// contact convention avatars follow to be compatible.
 
 using System;
 using System.Collections.Generic;
@@ -7,7 +8,7 @@ using UdonSharp;
 using UnityEngine;
 using VRC.SDKBase;
 
-namespace ClubMaul.WorldInteractions
+namespace Loveseal.WorldInteractions
 {
     /// <summary>
     /// One custom interaction: a collision tag the world listens for, and the creator's
@@ -27,8 +28,9 @@ namespace ClubMaul.WorldInteractions
                  "instance, including late joiners.")]
         public bool InstanceWide = false;
 
-        [Tooltip("Skip firing the events on clients whose local player is wearing the Staff Scanner.")]
-        public bool ExemptStaff = false;
+        [Tooltip("Skip firing the events on clients whose local player is broadcasting one of the " +
+                 "Presence Tags (e.g. staff badges).")]
+        public bool ExemptPresence = false;
 
         [Tooltip("Your UdonSharp behaviour that reacts to this interaction.")]
         public UdonSharpBehaviour Target;
@@ -41,47 +43,47 @@ namespace ClubMaul.WorldInteractions
     }
 
     [DisallowMultipleComponent]
-    [AddComponentMenu("Club Maul/World Interactions")]
+    [AddComponentMenu("World Interactions/World Interactions")]
     public class WorldInteractionsConfig : MonoBehaviour, IEditorOnly
     {
         public const string Version = "1.0.0";
 
         [Header("Contacts")]
-        [Tooltip("Radius of the generated contact receivers. The Staff Scanner's senders are " +
-                 "0.5m spheres pinned to the world origin, so any positive value overlaps them.")]
+        [Tooltip("Radius of the generated contact receivers. Compatible avatar senders are 0.5m " +
+                 "spheres pinned to the world origin, so any positive value overlaps them.")]
         [Range(0.1f, 5f)]
         public float ReceiverRadius = 0.5f;
 
-        [Header("Staff Scanner")]
-        [Tooltip("Tags that mark the local player as a Staff Scanner wearer. Includes the V1 " +
-                 "scanner's legacy tag by default.")]
-        public List<string> StaffScannerTags = new List<string>
+        [Header("Presence")]
+        [Tooltip("Tags that mark the local player as a presence-beacon wearer (e.g. a staff badge). " +
+                 "Players broadcasting one of these can be exempted from effects, and creator code " +
+                 "can check PresenceDetector.IsLocalPlayerBroadcasting.")]
+        public List<string> PresenceTags = new List<string>
         {
-            "ClubMaul/Scanner/Show",
-            "ClubMaulShow",
+            "WI/Presence",
         };
 
         [Header("Slow")]
-        [Tooltip("React to the scanner's 'Slow' world feature by reducing player movement speed.")]
+        [Tooltip("React to the standard Slow broadcast by reducing player movement speed.")]
         public bool EnableSlow = true;
 
-        [Tooltip("Collision tag the Slow feature broadcasts.")]
-        public string SlowTag = "ClubMaul/Slow";
+        [Tooltip("Collision tag the Slow feature listens for.")]
+        public string SlowTag = "WI/Slow";
 
         [Tooltip("Movement speed is multiplied by this while Slow is active.")]
         [Range(0f, 1f)]
         public float SlowSpeedMultiplier = 0.5f;
 
-        [Tooltip("Apply Slow to everyone in the instance (staff exempt). Off = only the player " +
-                 "whose avatar sent the contact.")]
+        [Tooltip("Apply Slow to everyone in the instance (presence wearers exempt). Off = only " +
+                 "the player whose avatar sent the contact.")]
         public bool SlowInstanceWide = true;
 
         [Header("Rumble")]
-        [Tooltip("React to the scanner's 'Rumble' world feature by pulsing controller haptics.")]
+        [Tooltip("React to the standard Rumble broadcast by pulsing controller haptics.")]
         public bool EnableRumble = true;
 
-        [Tooltip("Collision tag the Rumble feature broadcasts.")]
-        public string RumbleTag = "ClubMaul/Rumble";
+        [Tooltip("Collision tag the Rumble feature listens for.")]
+        public string RumbleTag = "WI/Rumble";
 
         [Tooltip("Seconds between haptic pulses (also each pulse's duration).")]
         [Range(0.05f, 2f)]
@@ -95,8 +97,8 @@ namespace ClubMaul.WorldInteractions
         [Range(0f, 1f)]
         public float RumbleFrequency = 0.5f;
 
-        [Tooltip("Apply Rumble to everyone in the instance (staff exempt). Off = only the player " +
-                 "whose avatar sent the contact.")]
+        [Tooltip("Apply Rumble to everyone in the instance (presence wearers exempt). Off = only " +
+                 "the player whose avatar sent the contact.")]
         public bool RumbleInstanceWide = true;
 
         [Header("Custom Interactions")]

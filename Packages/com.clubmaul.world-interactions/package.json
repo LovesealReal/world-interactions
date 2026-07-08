@@ -1,9 +1,9 @@
 {
   "name": "com.clubmaul.world-interactions",
-  "displayName": "World Interactions",
+  "displayName": "Club Maul World Interactions",
   "version": "1.0.0",
   "unity": "2022.3",
-  "description": "World-side counterpart to the Club Maul Staff Scanner V2. Drop the prefab into your world, and at build time it generates world-origin contact receivers that react to the scanner's broadcasts: built-in Slow and Rumble effects (with staff scanner wearers automatically exempt) plus easy hooks to run your own UdonSharp code from any custom contact tag.",
+  "description": "Club Maul preset for the World Interactions package. Drop the prefab into your world and it reacts to the Club Maul Staff Scanner V2: Slow and Rumble effects on the ClubMaul/* tags, with staff scanner wearers automatically exempt.",
   "author": {
     "name": "Club Maul",
     "url": "https://github.com/Club-Maul"
@@ -21,6 +21,7 @@
     "contacts"
   ],
   "vpmDependencies": {
+    "com.loveseal.world-interactions": ">=1.0.0",
     "com.vrchat.worlds": ">=3.7.0"
   }
 }

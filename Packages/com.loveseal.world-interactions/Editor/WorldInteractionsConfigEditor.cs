@@ -5,20 +5,20 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-namespace ClubMaul.WorldInteractions.Editor
+namespace Loveseal.WorldInteractions.Editor
 {
     [CustomEditor(typeof(WorldInteractionsConfig))]
     public class WorldInteractionsConfigEditor : UnityEditor.Editor
     {
         public override void OnInspectorGUI()
         {
-            EditorGUILayout.LabelField($"Club Maul World Interactions v{WorldInteractionsConfig.Version}",
+            EditorGUILayout.LabelField($"World Interactions v{WorldInteractionsConfig.Version}",
                                        EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
                 "All contact receivers, relays and effect handlers are generated when the world is " +
                 "built (and when entering Play Mode) — this component just configures them, and is " +
                 "stripped from the built scene. The prefab can sit anywhere; generated contacts are " +
-                "pinned to the world origin, matching the Staff Scanner's senders.",
+                "pinned to the world origin, matching compatible avatar senders (see PROTOCOL.md).",
                 MessageType.Info);
 
             serializedObject.Update();
@@ -34,11 +34,11 @@ namespace ClubMaul.WorldInteractions.Editor
         {
             var warnings = new List<string>();
 
-            bool hasStaffTag = false;
-            foreach (var tag in config.StaffScannerTags)
-                if (!string.IsNullOrWhiteSpace(tag)) hasStaffTag = true;
-            if (!hasStaffTag)
-                warnings.Add("No staff scanner tags set — staff exemption will never apply.");
+            bool hasPresenceTag = false;
+            foreach (var tag in config.PresenceTags)
+                if (!string.IsNullOrWhiteSpace(tag)) hasPresenceTag = true;
+            if (!hasPresenceTag)
+                warnings.Add("No presence tags set — presence exemption will never apply.");
 
             var seenTags = new HashSet<string>();
             if (config.EnableSlow && !string.IsNullOrWhiteSpace(config.SlowTag)) seenTags.Add(config.SlowTag.Trim());

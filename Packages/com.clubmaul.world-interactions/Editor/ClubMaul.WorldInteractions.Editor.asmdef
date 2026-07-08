@@ -2,23 +2,16 @@
     "name": "ClubMaul.WorldInteractions.Editor",
     "rootNamespace": "",
     "references": [
-        "ClubMaul.WorldInteractions.Runtime",
-        "UdonSharp.Runtime",
-        "UdonSharp.Editor",
-        "VRC.Udon",
-        "VRC.Udon.Serialization.OdinSerializer"
+        "Loveseal.WorldInteractions.Editor",
+        "Loveseal.WorldInteractions.Runtime"
     ],
     "includePlatforms": [
         "Editor"
     ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": true,
-    "precompiledReferences": [
-        "VRCSDKBase.dll",
-        "VRC.Dynamics.dll",
-        "VRC.SDK3.Dynamics.Contact.dll"
-    ],
+    "overrideReferences": false,
+    "precompiledReferences": [],
     "autoReferenced": false,
     "defineConstraints": [],
     "versionDefines": [],

@@ -6,15 +6,15 @@ using UnityEngine;
 using VRC.Dynamics;
 using VRC.SDKBase;
 
-namespace ClubMaul.WorldInteractions
+namespace Loveseal.WorldInteractions
 {
     /// <summary>
     /// Bridges one avatar contact tag to creator code. The VRCContactReceiver on this object
     /// (added by the build-time generator) fires OnContactEnter/OnContactExit; this relay
     /// tracks the active state and sends the configured custom events to the target behaviour.
     ///
-    /// Because the Staff Scanner's senders are local-only, a contact is only ever detected on
-    /// the client of the player whose avatar sent it. With InstanceWide on, that client takes
+    /// Because compatible senders are local-only, a contact is only ever detected on the
+    /// client of the player whose avatar sent it. With InstanceWide on, that client takes
     /// ownership and syncs the state so every client (late joiners included) runs the events;
     /// off, the events run only on the detecting client.
     /// </summary>
@@ -26,10 +26,10 @@ namespace ClubMaul.WorldInteractions
         [HideInInspector] public string StartEvent;
         [HideInInspector] public string EndEvent;
         [HideInInspector] public bool InstanceWide;
-        [HideInInspector] public bool ExemptStaff;
-        [HideInInspector] public StaffScannerDetector StaffDetector;
+        [HideInInspector] public bool ExemptPresence;
+        [HideInInspector] public PresenceDetector Detector;
 
-        /// <summary>True while this interaction is active on this client (before staff exemption).</summary>
+        /// <summary>True while this interaction is active on this client (before presence exemption).</summary>
         [HideInInspector] public bool IsActive;
 
         [UdonSynced] private bool _syncedActive;
@@ -64,7 +64,7 @@ namespace ClubMaul.WorldInteractions
             if (!InstanceWide) return;
 
             // Another activator switched the synced state off while our own contact is still
-            // live (e.g. two Beasts toggled the same feature) — re-assert it.
+            // live (e.g. two broadcasters toggled the same feature) — re-assert it.
             if (!_syncedActive && _localContacts > 0)
             {
                 TakeOwnership();
@@ -102,7 +102,7 @@ namespace ClubMaul.WorldInteractions
 
             if (active)
             {
-                if (ExemptStaff && StaffDetector != null && StaffDetector.IsLocalPlayerStaff) return;
+                if (ExemptPresence && Detector != null && Detector.IsLocalPlayerBroadcasting) return;
                 _handlerNotified = true;
                 if (Target != null && !string.IsNullOrEmpty(StartEvent)) Target.SendCustomEvent(StartEvent);
             }
