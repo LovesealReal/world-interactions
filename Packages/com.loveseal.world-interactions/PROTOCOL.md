@@ -1,7 +1,7 @@
 # World Interactions — Contact Protocol
 
 This is the small convention that makes avatars and worlds interoperable. Anything that
-follows it — whether built with a World Interactions package, the Club Maul Staff Scanner,
+follows it — whether built with a World Interactions package, a vendor's avatar system,
 VRCFury, or by hand — is compatible with anything else that follows it.
 
 ## Avatar side: broadcasting a feature
@@ -39,22 +39,11 @@ Tags are namespaced `Vendor/Feature`:
 | `WI/Presence` | Standard presence beacon: "I'm wearing the badge" — broadcast while the wearer's system is on, used by worlds to exempt wearers from effects. |
 | `MyWorld/...` | Anything else: define your own tags under your own vendor prefix. |
 
-### Known vendor ecosystems
-
-| Tag | Ecosystem |
-|---|---|
-| `ClubMaul/Slow`, `ClubMaul/Rumble` | Club Maul Staff Scanner V2 world features. |
-| `ClubMaul/Scanner/Show` | Staff Scanner V2 presence beacon. |
-| `ClubMaulShow` | Staff Scanner V1 legacy presence beacon (no vendor prefix, predates this convention). |
-
-Deployed Staff Scanner avatars currently broadcast only the `ClubMaul/*` tags; a future
-scanner update is planned to additionally broadcast the standard `WI/*` tags (senders carry a
-tag *list*, so this is additive and breaks nothing). Until the avatar fleet has re-uploaded,
-worlds that want Club Maul compatibility should list both tag sets.
-
-Worlds are encouraged to accept both the `WI/*` standard tags and any vendor tags relevant to
-their community — every tag field in World Interactions is a plain string list precisely so
-ecosystems can be mixed.
+Vendor ecosystems that predate or extend this convention keep working: senders carry a tag
+*list*, so a vendor system can broadcast its own tags and the `WI/*` standard tags side by
+side, and worlds can listen for both — every tag field in World Interactions is a plain
+string list precisely so ecosystems can be mixed. Vendors should publish their own
+compatibility guide listing the tags their avatars broadcast.
 
 ## Semantics
 

@@ -2,7 +2,7 @@
 
 Let avatars talk to your VRChat world through contact broadcasts. Drop one prefab into your scene and it reacts to compatible avatar contacts — with built-in **Slow** and **Rumble** effects, automatic **presence-beacon exemption** (e.g. staff badges), and easy hooks for your own UdonSharp code.
 
-World Interactions is a general-purpose system, unaffiliated with any community. Any avatar system that follows the small contact convention in [PROTOCOL.md](PROTOCOL.md) works with it — including the [Club Maul Staff Scanner V2](https://github.com/Club-Maul/staff-scanner-v2) (see [Club Maul compatibility](#club-maul-compatibility)).
+World Interactions is a general-purpose system, unaffiliated with any community. Any avatar system that follows the small contact convention in [PROTOCOL.md](PROTOCOL.md) works with it.
 
 ## Installation
 
@@ -24,7 +24,7 @@ This package generates a matching `VRCContactReceiver` at the world origin for e
 | **Slow** | `WI/Slow` | Multiplies walk/run/strafe speed by 0.5× for everyone in the instance while active. |
 | **Rumble** | `WI/Rumble` | Pulses both controllers' haptics for everyone in the instance while active. |
 
-Each feature listens on a **list of tags**, so you can accept several ecosystems at once (e.g. add `ClubMaul/Slow` next to `WI/Slow`). Both are **instance-wide** by default: the activating client syncs the state so every player is affected, including late joiners. Both **exempt presence wearers**: any player whose own presence beacon is active is skipped.
+Each feature listens on a **list of tags**, so you can accept several ecosystems at once (e.g. a community's vendor tags next to the standard ones). Both are **instance-wide** by default: the activating client syncs the state so every player is affected, including late joiners. Both **exempt presence wearers**: any player whose own presence beacon is active is skipped.
 
 ### Presence detection
 
@@ -57,17 +57,9 @@ A matching receiver + relay is generated at the next build. The relay also expos
 
 An `ExampleInteractionHandler` (toggles a GameObject on/off) ships with the package as a starting point.
 
-## Club Maul compatibility
+## Supporting other ecosystems
 
-To react to the [Club Maul Staff Scanner V2](https://github.com/Club-Maul/staff-scanner-v2), add the Club Maul vendor tags to the default lists on the component:
-
-| Field | Add |
-|---|---|
-| Slow Tags | `ClubMaul/Slow` |
-| Rumble Tags | `ClubMaul/Rumble` |
-| Presence Tags | `ClubMaul/Scanner/Show` and `ClubMaulShow` (V1 legacy) |
-
-Keep the `WI/*` entries too — the lists are additive, so one world can serve multiple ecosystems at once. Currently deployed scanners broadcast only the `ClubMaul/*` tags; a future scanner update is planned to also broadcast the standard `WI/*` tags, at which point the extra entries become optional.
+Every tag field is a plain string list, so a world can serve several avatar ecosystems at once: add a vendor's tags (e.g. `MyClub/Slow`) alongside the standard `WI/*` entries on the same feature, and list every badge system you honor under Presence Tags. Vendor communities are encouraged to publish their own short compatibility guide listing the tags their avatars broadcast.
 
 ## Notes & limitations
 

@@ -3,7 +3,7 @@
   "displayName": "World Interactions",
   "version": "1.0.0",
   "unity": "2022.3",
-  "description": "Let avatars talk to your VRChat world through contact broadcasts. Drop one prefab into your scene and, at build time, it generates world-origin contact receivers: built-in Slow and Rumble effects (with presence-beacon wearers like staff automatically exempt) plus easy hooks to run your own UdonSharp code from any custom contact tag. Cross-compatible with any broadcaster following the documented contact protocol, including the Club Maul Staff Scanner.",
+  "description": "Let avatars talk to your VRChat world through contact broadcasts. Drop one prefab into your scene and, at build time, it generates world-origin contact receivers: built-in Slow and Rumble effects (with presence-beacon wearers like staff automatically exempt) plus easy hooks to run your own UdonSharp code from any custom contact tag. Cross-compatible with any broadcaster following the documented contact protocol.",
   "author": {
     "name": "Loveseal",
     "url": "https://github.com/LovesealReal"

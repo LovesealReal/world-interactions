@@ -12,14 +12,13 @@ All notable changes to the World Interactions package are documented in this fil
 - Built-in **Slow** effect (`WI/Slow`): scales player movement speed while active.
 - Built-in **Rumble** effect (`WI/Rumble`): pulses controller haptics while active.
 - Built-in features and presence detection accept **tag lists**, so one world can serve
-  multiple ecosystems (e.g. `WI/Slow` + `ClubMaul/Slow`) with a single receiver each.
+  multiple ecosystems (the standard tags plus any vendor tags) with a single receiver each.
 - **Presence detection** (`WI/Presence`): built-in effects skip presence-beacon wearers
   (e.g. staff badges), and `PresenceDetector.IsLocalPlayerBroadcasting` is available to
   creator code.
 - **Custom interactions**: map any collision tag to start/end custom events on your own
   UdonSharpBehaviour, per-interaction instance-wide syncing (with late-joiner support)
   and presence exemption.
-- `PROTOCOL.md` documenting the avatar/world contact convention, including the Club Maul
-  Staff Scanner tags for cross-compatibility.
+- `PROTOCOL.md` documenting the avatar/world contact convention.
 - `ExampleInteractionHandler` sample script.
 - Menu items: Tools → World Interactions → Initialize World Interactions, and GameObject → World Interactions.

@@ -28,7 +28,7 @@ namespace Loveseal.WorldInteractions.Editor
             SpawnPrefab(command.context as GameObject, PrefabGuid, "World Interactions");
         }
 
-        /// <summary>Shared prefab spawner, also used by preset packages (e.g. Club Maul).</summary>
+        /// <summary>Shared prefab spawner, reusable by vendor preset packages.</summary>
         public static void SpawnPrefab(GameObject parent, string prefabGuid, string displayName)
         {
             var path = AssetDatabase.GUIDToAssetPath(prefabGuid);

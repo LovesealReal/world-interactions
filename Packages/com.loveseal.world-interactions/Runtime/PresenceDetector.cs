@@ -8,8 +8,8 @@ using VRC.Dynamics;
 namespace Loveseal.WorldInteractions
 {
     /// <summary>
-    /// Listens for presence-beacon broadcasts (e.g. a staff badge like the Club Maul Staff
-    /// Scanner). Compatible beacons are local-only senders, so this receiver can only ever hear
+    /// Listens for presence-beacon broadcasts (e.g. a community's staff badge system).
+    /// Compatible beacons are local-only senders, so this receiver can only ever hear
     /// the LOCAL player's own beacon — which makes it a reliable "is the person at this keyboard
     /// wearing the badge?" check. Read <see cref="IsLocalPlayerBroadcasting"/> from your own
     /// UdonSharp code, or let ContactInteraction's Exempt Presence option use it for you.

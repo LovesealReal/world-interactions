@@ -68,7 +68,7 @@ namespace Loveseal.WorldInteractions
         public bool EnableSlow = true;
 
         [Tooltip("Collision tags the Slow feature listens for. Add vendor tags (e.g. " +
-                 "'ClubMaul/Slow') alongside the standard one to support other ecosystems.")]
+                 "'MyClub/Slow') alongside the standard one to support other ecosystems.")]
         public List<string> SlowTags = new List<string>
         {
             "WI/Slow",
@@ -87,7 +87,7 @@ namespace Loveseal.WorldInteractions
         public bool EnableRumble = true;
 
         [Tooltip("Collision tags the Rumble feature listens for. Add vendor tags (e.g. " +
-                 "'ClubMaul/Rumble') alongside the standard one to support other ecosystems.")]
+                 "'MyClub/Rumble') alongside the standard one to support other ecosystems.")]
         public List<string> RumbleTags = new List<string>
         {
             "WI/Rumble",

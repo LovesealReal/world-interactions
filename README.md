@@ -4,7 +4,7 @@ This repository hosts the **World Interactions** package and a [VPM](https://vcc
 
 World Interactions lets avatars talk to your VRChat world through contact broadcasts: drop one prefab into your world and, at build time, it generates world-origin contact receivers — built-in **Slow** and **Rumble** effects (with presence-beacon wearers like staff automatically exempt), plus simple hooks to run your own UdonSharp code from any custom contact tag. The full avatar/world convention is documented in [PROTOCOL.md](Packages/com.loveseal.world-interactions/PROTOCOL.md), so any avatar system can implement it.
 
-The package is community-neutral: standard `WI/*` tags out of the box, everything configurable. [Club Maul](https://github.com/Club-Maul) [Staff Scanner V2](https://github.com/Club-Maul/staff-scanner-v2) compatibility is a documented config snippet — see the [package README](Packages/com.loveseal.world-interactions/README.md#club-maul-compatibility).
+The package is community-neutral: standard `WI/*` tags out of the box, everything configurable. Vendor avatar systems are supported by adding their tags to the same lists — see the [package README](Packages/com.loveseal.world-interactions/README.md).
 
 ## Install via VCC / ALCOM
 
