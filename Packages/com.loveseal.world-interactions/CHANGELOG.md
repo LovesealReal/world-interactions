@@ -26,9 +26,9 @@ All notable changes to the World Interactions package are documented in this fil
 - **Presence detection** (`WI/Presence`): built-in effects skip presence-beacon wearers
   (e.g. staff badges), and `PresenceDetector.IsLocalPlayerBroadcasting` is available to
   creator code.
-- **Custom interactions**: map any collision tag to start/end custom events on your own
-  UdonSharpBehaviour, with per-interaction syncing (late joiners included), effect range,
-  and presence exemption.
+- **Custom interactions**: map one or more collision tags to start/end custom events on
+  your own UdonSharpBehaviour, with per-interaction syncing (late joiners included),
+  effect range, and presence exemption.
 - `PROTOCOL.md` documenting the avatar/world contact convention.
 - `ExampleInteractionHandler` sample script.
 - Menu items: Tools → World Interactions → Initialize World Interactions, and GameObject → World Interactions.

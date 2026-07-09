@@ -15,8 +15,9 @@ namespace Loveseal.WorldInteractions
         [Tooltip("Display name; also used for the generated GameObject.")]
         public string Name = "New Interaction";
 
-        [Tooltip("Collision tag the avatar broadcasts (e.g. 'MyWorld/Confetti').")]
-        public string CollisionTag = "";
+        [Tooltip("Collision tags the avatar broadcasts (e.g. 'MyWorld/Confetti'). Multiple tags " +
+                 "share one receiver, so several ecosystems can drive the same interaction.")]
+        public List<string> CollisionTags = new List<string>();
 
         [Tooltip("Off: events fire only on the broadcaster's own client. On: state is synced and " +
                  "other clients react too (late joiners included).")]

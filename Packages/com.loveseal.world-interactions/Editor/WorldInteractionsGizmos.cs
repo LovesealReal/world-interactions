@@ -28,9 +28,7 @@ namespace Loveseal.WorldInteractions.Editor
             {
                 if (interaction == null) continue;
                 if (!interaction.Synced && interaction.Mode != RangeMode.WorldObjects) continue;
-                string label = string.IsNullOrWhiteSpace(interaction.Name)
-                    ? interaction.CollisionTag
-                    : interaction.Name;
+                string label = string.IsNullOrWhiteSpace(interaction.Name) ? "Interaction" : interaction.Name;
                 var color = Color.HSVToRGB((0.35f + index * 0.13f) % 1f, 0.7f, 1f);
                 DrawRange(origin, interaction.EffectRange, label, color, index++);
             }

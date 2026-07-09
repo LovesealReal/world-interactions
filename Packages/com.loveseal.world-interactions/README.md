@@ -48,7 +48,7 @@ Your own code can check it too: the detector exposes a public `IsLocalPlayerBroa
 2. Add it to any object in your scene.
 3. On the **World Interactions** component, add an entry under **Custom Interactions**:
    - **Name** — label for the generated object (e.g. `Confetti`).
-   - **Collision Tag** — the tag the avatar broadcasts (e.g. `MyWorld/Confetti`).
+   - **Collision Tags** — one or more tags the avatar broadcasts (e.g. `MyWorld/Confetti`); multiple tags share the receiver, so several ecosystems can drive the same interaction.
    - **Synced** — off: events fire only on the broadcaster's own client; on: state is synced to everyone (late joiners included).
    - **Mode** — *Players*: events fire per player entering/leaving the range. *World Objects*: events fire while broadcasting, and your handler decides per object (see below).
    - **Effect Range** / **Falloff** — radius around the broadcaster (previewed as a gizmo; `0` = unlimited) and how intensity fades across it.

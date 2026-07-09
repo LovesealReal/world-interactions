@@ -114,10 +114,10 @@ namespace Loveseal.WorldInteractions.Editor
             foreach (var interaction in config.CustomInteractions)
             {
                 if (interaction == null) continue;
-                if (string.IsNullOrWhiteSpace(interaction.CollisionTag))
+                if (!HasAnyTag(interaction.CollisionTags))
                 {
                     Debug.LogWarning($"[WorldInteractions] Custom interaction '{interaction.Name}' has no " +
-                                     "collision tag. Skipping.");
+                                     "collision tags. Skipping.");
                     continue;
                 }
                 if (interaction.Target == null)
@@ -126,7 +126,9 @@ namespace Loveseal.WorldInteractions.Editor
                                      "target behaviour; it will track state but fire no events.");
                 }
 
-                string name = string.IsNullOrWhiteSpace(interaction.Name) ? interaction.CollisionTag : interaction.Name.Trim();
+                string name = string.IsNullOrWhiteSpace(interaction.Name)
+                    ? FirstTag(interaction.CollisionTags)
+                    : interaction.Name.Trim();
                 if (!usedNames.Add(name))
                 {
                     Debug.LogWarning($"[WorldInteractions] Duplicate interaction name '{name}'. Skipping.");
@@ -134,7 +136,7 @@ namespace Loveseal.WorldInteractions.Editor
                 }
 
                 var go = CreateChild(generatedRoot, name);
-                AddRelay(go, name, new[] { interaction.CollisionTag }, interaction.Target,
+                AddRelay(go, name, interaction.CollisionTags, interaction.Target,
                          interaction.StartEvent, interaction.EndEvent,
                          interaction.Synced, interaction.EffectRange, interaction.Falloff,
                          interaction.Mode, interaction.ExemptPresence, detector, config.ReceiverRadius);
@@ -158,6 +160,13 @@ namespace Loveseal.WorldInteractions.Editor
             foreach (var tag in tags)
                 if (!string.IsNullOrWhiteSpace(tag)) return true;
             return false;
+        }
+
+        private static string FirstTag(IEnumerable<string> tags)
+        {
+            foreach (var tag in tags)
+                if (!string.IsNullOrWhiteSpace(tag)) return tag.Trim();
+            return "Interaction";
         }
 
         private static ContactInteraction AddRelay(GameObject go, string name, IEnumerable<string> tags,
