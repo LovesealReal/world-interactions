@@ -50,10 +50,19 @@ namespace Loveseal.WorldInteractions.Editor
                 if (interaction == null) continue;
                 string label = string.IsNullOrWhiteSpace(interaction.Name) ? "(unnamed)" : interaction.Name;
 
-                if (string.IsNullOrWhiteSpace(interaction.CollisionTag))
-                    warnings.Add($"Custom interaction '{label}' has no collision tag and will be skipped.");
-                else if (!seenTags.Add(interaction.CollisionTag.Trim()))
-                    warnings.Add($"Custom interaction '{label}' reuses collision tag '{interaction.CollisionTag}'.");
+                bool anyTag = false;
+                if (interaction.CollisionTags != null)
+                {
+                    foreach (var tag in interaction.CollisionTags)
+                    {
+                        if (string.IsNullOrWhiteSpace(tag)) continue;
+                        anyTag = true;
+                        if (!seenTags.Add(tag.Trim()))
+                            warnings.Add($"Custom interaction '{label}' reuses collision tag '{tag}'.");
+                    }
+                }
+                if (!anyTag)
+                    warnings.Add($"Custom interaction '{label}' has no collision tags and will be skipped.");
 
                 if (interaction.Target == null)
                     warnings.Add($"Custom interaction '{label}' has no target behaviour assigned.");
